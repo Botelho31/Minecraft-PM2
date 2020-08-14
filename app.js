@@ -7,7 +7,7 @@ var minecraftServerProcess = spawn('java', [
     '-Xmx512M',
     '-Xms256M',
     '-jar',
-    'minecraft_server.1.8.3.jar',
+    'minecraft_server.jar',
     'nogui'
 ]);
 
@@ -30,7 +30,8 @@ app.use(require('body-parser').urlencoded({
 app.get('/command', function(request, response) {
     // Get the command from the HTTP request and send it to the Minecraft
     // server process
-    var command = request.param('Body');
+	console.log(request.query);
+    var command = request.query["Body"];
     minecraftServerProcess.stdin.write(command+'\n');
 
     // buffer output for a quarter of a second, then reply to HTTP request
@@ -47,4 +48,4 @@ app.get('/command', function(request, response) {
 });
 
 // Listen for incoming HTTP requests on port 3000
-app.listen(3000);
+app.listen(3002);
