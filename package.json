@@ -10,8 +10,8 @@
   "devDependencies": {},
   "scripts": {
     "docker-build": "docker build -t minecraft-node .",
-    "docker-build-run": "docker build -t minecraft-node . && docker run -it -v \"${PWD}\"/:/app/ minecraft-node",
-    "docker-run": "docker run -it -v \"${PWD}\"/:/app/ minecraft-node",
+    "docker-build-run": "docker build -t minecraft-node . && docker run -d --restart unless-stopped -p 3002:3002 -p 25565:25565 -v \"${PWD}\"/:/app/ minecraft-node",
+    "docker-run": "docker run -d --restart unless-stopped -p 3002:3002 -p 25565:25565 -v \"${PWD}\"/:/app/ minecraft-node",
     "start": "node app.js"
   },
   "author": "Jared H",
