@@ -5,10 +5,9 @@ WORKDIR /app
 COPY package.json /app
 RUN npm install
 COPY . /app
-EXPOSE 3000/tcp
+EXPOSE 3002/tcp
 EXPOSE 25565/tcp
 EXPOSE 25565/udp
 RUN apt-get update
 RUN apt-get install wget
-ENV SETUPSERVER=false
 CMD npm start

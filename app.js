@@ -8,23 +8,20 @@ var fs = require('fs');
 // invocation we used manually before
 
 async function setupServer(){
-
-    if(process.env.SETUPSERVER == "false"){
+    if(!fs.existsSync("./server")){
         try{
             await exec('mkdir server')
-            await exec('wget -O server/minecraft_server.jar https://launcher.mojang.com/v1/objects/a412fd69db1f81db3f511c1463fd304675244077/server.jar')
+            await exec('wget -O server/minecraft_server.jar https://launcher.mojang.com/v1/objects/a412fd69db1f81db3f511c1463fd304675244077/server.jar');
             await setupJava()
             await setupEULA()
         }catch(err){
             console.log(err)
+            return
         }
-        // You need to agree to the EULA in order to run the server. Go to eula.txt for more info.
-        process.env.SETUPSERVER = "true"
     }
-
     var minecraftServerProcess = spawn('java', [
-        '-Xmx512M',
-        '-Xms256M',
+        '-Xmx1024M',
+        '-Xms1024M',
         '-jar',
         'minecraft_server.jar',
         'nogui'
@@ -66,7 +63,7 @@ async function setupServer(){
     });
 
     // Listen for incoming HTTP requests on port 3000
-    app.listen(3000);
+    app.listen(3002);
 }
 
 function setupJava(){
@@ -86,7 +83,7 @@ function setupJava(){
                     log(data);
                 });
                 firstJavaExec.on('close', function (code) {
-                    console.log("Java first Run Completed")
+                    console.log("Java First Run Completed")
                     resolve()
                 });
                 firstJavaExec.stderr.on('error', function (err) {

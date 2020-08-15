@@ -11,6 +11,8 @@ server.properties
 usercache.json
 whitelist.json
 
+server/*
+server
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Node template
