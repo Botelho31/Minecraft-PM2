@@ -9,8 +9,9 @@
   },
   "devDependencies": {},
   "scripts": {
-    "start": "node app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "docker-build": "docker build -t minecraft-node .",
+    "docker-run":"docker run -it -v \"${PWD}\"/:/app/ minecraft-node",
+    "start": "node app.js"
   },
   "author": "Jared H",
   "license": "ISC"
