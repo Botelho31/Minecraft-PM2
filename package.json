@@ -10,6 +10,7 @@
   "devDependencies": {},
   "scripts": {
     "docker-build": "docker build -t minecraft-node .",
+    "docker-build-run": "docker build -t minecraft-node . && docker run -it -v \"${PWD}\"/:/app/ minecraft-node",
     "docker-run":"docker run -it -v \"${PWD}\"/:/app/ minecraft-node",
     "start": "node app.js"
   },
