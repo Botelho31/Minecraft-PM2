@@ -91,10 +91,12 @@ setupServer().then(data => {
     minecraftServerProcess.stderr.on('data', log);
     
     // Create an express web app that can parse HTTP POST requests
-    var app = require('express')();
+    var express = require('express')
+    var app = express();
     app.use(require('body-parser').urlencoded({
         extended:false
     }));
+    app.use('/static', express.static(__dirname + '/public'));
     
     // Create a route that will respond to a POST request
     app.get('/command', function(request, response) {
@@ -121,11 +123,12 @@ setupServer().then(data => {
         res.writeHead(200, { "Content-Type": "text/event-stream",
                              "Cache-control": "no-cache" });
     
+        var str = ""
         minecraftServerProcess.stdout.on('data', function (data) {
             str += data.toString();
     
             // just so we can see the server is doing something
-            console.log("data");
+            // console.log("data");
     
             // Flush out line by line.
             var lines = str.split("\n");
