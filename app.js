@@ -116,6 +116,37 @@ setupServer().then(data => {
             response.send(buffer.join(''));
         }, 250);
     });
+
+    app.get('/log', function(req, res){
+        res.writeHead(200, { "Content-Type": "text/event-stream",
+                             "Cache-control": "no-cache" });
+    
+        minecraftServerProcess.stdout.on('data', function (data) {
+            str += data.toString();
+    
+            // just so we can see the server is doing something
+            console.log("data");
+    
+            // Flush out line by line.
+            var lines = str.split("\n");
+            for(var i in lines) {
+                if(i == lines.length - 1) {
+                    str = lines[i];
+                } else{
+                    // Note: The double-newline is *required*
+                    res.write('data: ' + lines[i] + "\n\n");
+                }
+            }
+        });
+    
+        minecraftServerProcess.on('close', function (code) {
+            res.end(str);
+        });
+    
+        minecraftServerProcess.stderr.on('data', function (data) {
+            res.end('stderr: ' + data);
+        });
+    });
     
     app.get('/', function(request, response) {
         response.send('Minecraft Server')
