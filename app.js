@@ -9,6 +9,9 @@ dotenv.config();
 
 const serverPath = process.env.SERVER_PATH ?? "./server"
 const memory = process.env.MEMORY ?? "1024M"
+const port = process.env.PORT ?? 3000
+const minecraft_server_url = process.env.MINECRAFT_SERVER_URL ?? "https://piston-data.mojang.com/v1/objects/5b868151bd02b41319f54c8d4061b8cae84e665c/server.jar"
+const isMac = process.platform === "darwin"
 
 // Create a child process for the Minecraft server using the same java process
 // invocation we used manually before
@@ -16,10 +19,12 @@ const memory = process.env.MEMORY ?? "1024M"
 async function setupServer(){
     return new Promise(
         async function(resolve, reject) { 
-            if(!fs.existsSync(serverPath)){
+            const serverPathExists = fs.existsSync(serverPath)
+            if(!serverPathExists || !fs.existsSync(`${serverPath}/server.jar`)){
                 try{
-                    await exec(`mkdir ${serverPath}`)
-                    await exec(`wget -O ${serverPath}/minecraft_server.jar https://piston-data.mojang.com/v1/objects/5b868151bd02b41319f54c8d4061b8cae84e665c/server.jar`);
+                    !serverPathExists && await exec(`mkdir ${serverPath}`)
+                    const downloadCommand = isMac ? `curl -o ${serverPath}/server.jar ${minecraft_server_url}` : `wget -O ${serverPath}/server.jar ${minecraft_server_url}`
+                    await exec(downloadCommand);
                     await setupJava()
                     setupEULA()
                     resolve()
@@ -41,7 +46,7 @@ function setupJava(){
                     `-Xmx${memory}`,
                     `-Xms${memory}`,
                     '-jar',
-                    'minecraft_server.jar',
+                    `${serverPath}/server.jar`,
                     'nogui'
                 ],{
                     cwd : "server"
@@ -77,6 +82,7 @@ function setupEULA() {
 }
 
 function log(data) {
+    console.log(data.toString());
     process.stdout.write(data.toString());
 }
 
@@ -85,7 +91,7 @@ setupServer().then(data => {
         `-Xmx${memory}`,
         `-Xms${memory}`,
         '-jar',
-        'minecraft_server.jar',
+        `${serverPath}/server.jar`,
         'nogui'
     ],{
         cwd : "server"
@@ -162,9 +168,15 @@ setupServer().then(data => {
     });
     
     // Listen for incoming HTTP requests on port 3000
-    var server = app.listen(3002);
+    var server = app.listen(port);
     minecraftServerProcess.on('close', function (code) {
         console.log("Server Has Been Closed")
         server.close()
     });
+})
+
+process.on ('SIGTERM', function () {
+    console.log("SIGTERM")
+    minecraftServerProcess.stdin.write('/stop\n');
+    server.close()
 })
