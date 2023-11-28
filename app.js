@@ -3,6 +3,12 @@ var spawn = require('child_process').spawn;
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 var fs = require('fs');
+// setup dotenv
+const dotenv = require('dotenv');
+dotenv.config();
+
+const serverPath = process.env.SERVER_PATH ?? "./server"
+const memory = process.env.MEMORY ?? "1024M"
 
 // Create a child process for the Minecraft server using the same java process
 // invocation we used manually before
@@ -10,12 +16,12 @@ var fs = require('fs');
 async function setupServer(){
     return new Promise(
         async function(resolve, reject) { 
-            if(!fs.existsSync("./server")){
+            if(!fs.existsSync(serverPath)){
                 try{
-                    await exec('mkdir server')
-                    await exec('wget -O server/minecraft_server.jar https://launcher.mojang.com/v1/objects/a412fd69db1f81db3f511c1463fd304675244077/server.jar');
+                    await exec(`mkdir ${serverPath}`)
+                    await exec(`wget -O ${serverPath}/minecraft_server.jar https://piston-data.mojang.com/v1/objects/5b868151bd02b41319f54c8d4061b8cae84e665c/server.jar`);
                     await setupJava()
-                    await setupEULA()
+                    setupEULA()
                     resolve()
                 }catch(err){
                     console.log(err)
@@ -32,8 +38,8 @@ function setupJava(){
         async function(resolve, reject) { 
             try {
                 var firstJavaExec = spawn('java', [
-                    '-Xmx512M',
-                    '-Xms256M',
+                    `-Xmx${memory}`,
+                    `-Xms${memory}`,
                     '-jar',
                     'minecraft_server.jar',
                     'nogui'
@@ -58,12 +64,12 @@ function setupJava(){
 }
 
 function setupEULA() {
-  fs.readFile('server/eula.txt', 'utf-8', function(err, data){
+  fs.readFile(`${serverPath}/eula.txt`, 'utf-8', function(err, data){
     if (err) throw err;
 
     var newValue = data.replace(/false/gim, 'true');
 
-    fs.writeFile('server/eula.txt', newValue, 'utf-8', function (err) {
+    fs.writeFile(`${serverPath}/eula.txt`, newValue, 'utf-8', function (err) {
       if (err) throw err;
       console.log('Eula Setup Complete');
     });
@@ -76,8 +82,8 @@ function log(data) {
 
 setupServer().then(data => {
     var minecraftServerProcess = spawn('java', [
-        '-Xmx1024M',
-        '-Xms1024M',
+        `-Xmx${memory}`,
+        `-Xms${memory}`,
         '-jar',
         'minecraft_server.jar',
         'nogui'
