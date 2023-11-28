@@ -3,11 +3,13 @@ var spawn = require("child_process").spawn;
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
 var fs = require("fs");
+const path = require("path");
 // setup dotenv
 const dotenv = require("dotenv");
 dotenv.config();
 
-const serverPath = process.env.SERVER_PATH ?? "./server";
+const serverEnvPath = process.env.SERVER_PATH ?? "./server"
+const serverPath = path.join(__dirname, serverEnvPath);
 const memory = process.env.MEMORY ?? "1024M";
 const port = process.env.PORT ?? 3000;
 const minecraft_server_url =
@@ -28,9 +30,9 @@ async function setupServer() {
     const downloadCommand = isMac
       ? `curl -o ${serverPath}/server.jar ${minecraft_server_url}`
       : `wget -O ${serverPath}/server.jar ${minecraft_server_url}`;
-    !serverPathExists && (await exec(downloadCommand));
+    !serverPathExists && console.log('Downloading Server.jar') && (await exec(downloadCommand));
     console.log("Server Downloaded");
-    !eulaExists && await setupJava();
+    if (!eulaExists) await setupJava();
     setupEULA();
   } catch (err) {
     console.log(err);
@@ -41,19 +43,8 @@ async function setupServer() {
 function setupJava() {
   return new Promise(async function (resolve, reject) {
     try {
-      var firstJavaExec = spawn(
-        "java",
-        [
-          `-Xmx${memory}`,
-          `-Xms${memory}`,
-          "-jar",
-          `${serverPath}/server.jar`,
-          "nogui",
-        ],
-        {
-          cwd: "server",
-        }
-      );
+      var firstJavaExec = spawnMinecraftProcess()
+      console.log("Java First Run Started");
       firstJavaExec.stdout.on("data", function (data) {
         log(data);
       });
@@ -66,6 +57,7 @@ function setupJava() {
         reject(err);
       });
     } catch (err) {
+        console.log(err);
       reject(err);
     }
   });
@@ -85,24 +77,28 @@ function setupEULA() {
 }
 
 function log(data) {
-  console.log(data.toString());
   process.stdout.write(data.toString());
 }
 
+function spawnMinecraftProcess() {
+    console.log("Starting Minecraft Server");
+    return spawn(
+        'java',
+        [
+          `-Xmx${memory}`,
+          `-Xms${memory}`,
+          "-jar",
+          `${serverPath}/server.jar`,
+          "nogui",
+        ],
+        {
+          cwd: serverPath,
+        }
+      );
+}
+
 setupServer().then((data) => {
-  var minecraftServerProcess = spawn(
-    "java",
-    [
-      `-Xmx${memory}`,
-      `-Xms${memory}`,
-      "-jar",
-      `${serverPath}/server.jar`,
-      "nogui",
-    ],
-    {
-      cwd: "server",
-    }
-  );
+  var minecraftServerProcess = spawnMinecraftProcess()
 
   // Listen for events coming from the minecraft server process - in this case,
   // just log out messages coming from the server
@@ -117,7 +113,7 @@ setupServer().then((data) => {
       extended: false,
     })
   );
-  app.use("/static", express.static(__dirname + "/public"));
+  app.use("/static", express.static(path.join(__dirname,"./public")));
 
   // Create a route that will respond to a POST request
   app.get("/command", function (request, response) {
