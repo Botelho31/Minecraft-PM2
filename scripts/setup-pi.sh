@@ -46,6 +46,12 @@ network={
     psk="0815233128"
     key_mgmt=WPA-PSK
 }
+
+network={
+    ssid="RALU NET 2G"
+    psk="0815233128"
+    key_mgmt=WPA-PSK
+}
 EOT'
 fi
 echo "Done configuring static ip and wifi"
