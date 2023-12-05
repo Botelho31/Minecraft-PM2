@@ -4,6 +4,7 @@
 
 # check if the line is already there
 
+echo "Configuring SSD..."
 if grep -q "usb-storage.quirks=152d:0578:u" /boot/cmdline.txt; then
     echo "usb-storage.quirks=152d:0578:u is already in the file"
 else
@@ -12,9 +13,11 @@ else
     cat /boot/cmdline.txt >> temp.txt
     sudo mv temp.txt /boot/cmdline.txt
 fi
+echo "Done configuring SSD"
 
 # check if the line is already there
 
+echo "Configuring static ip and wifi..."
 if grep -q "192.168.0.9/24" /etc/dhcpcd.conf; then
     echo "The static ip is already in the file"
 else 
@@ -42,3 +45,4 @@ else
             psk_mgmt=WPA-PSK
     }" >> /etc/wpa_supplicant/wpa_supplicant.conf
 fi
+echo "Done configuring static ip and wifi"
